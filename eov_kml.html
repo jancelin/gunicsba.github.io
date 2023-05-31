@@ -1,0 +1,123 @@
+<html>
+	<head>
+		<title>EOV KML konvertáló</title>
+	</head>
+<body>
+	<strong>Add be a földet határoló EOV koordinátákat és csinálunk belőle KML-t</strong>
+<br/>
+<hr>
+Földnév:<input id="foldnev" placeholder="Terulet neve" value='minta'/></input><br>
+<textarea id="EOVIN" rows="10" cols="30">547 693601.000 275362.990
+7025 693521.080 275355.140
+544 693503.990 275351.080
+571 693451.530 275000.670
+vagy
+824361.2,171289.5,1
+824362.2,171296.7,2
+824366.4,171307,3
+</textarea><br>
+<input type = "button" onclick = "szamol()" value = "Szamolj!">  <br><br>
+Várd meg amíg az alsó szöveges mezőben minden szám megjelenik.
+Aztán katt:<br>
+<input type = "button" onclick = "downloadAsKML()" value = "KML-be!">  <br><br>
+Várj egy picit amíg az összes koordinátát átkonvertáljuk!
+
+Utána a Művelési határra rányomva hozzá tudjuk adni az AgOpenGPS-hez :) <br>
+<textarea id="WGS84OUT" rows="10" cols="40"></textarea><br>
+
+
+<a href="https://eht2.gnssnet.hu/api-dokumentacio"> API dokumentáció</a>
+<br> Változások: </br>
+<li> 2023-05-31 -> támogatva van a vesszővel elválasztott EOV koordináta lista is</li>
+
+<html>
+</body>
+<!--
+	curl --location --request 
+	GET 'https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber=12&x=184415.841&y=722440.365&h=57.460'
+-->
+<script type="text/javascript">
+function szamol(){
+	var lines = document.getElementById('EOVIN').value.split('\n');
+	var splitby=' ';
+	for(var i = 0; i <= lines.length;i++){
+		if(i != lines.length){
+			if(lines[i].length != lines[i].replace(',','').length ) {
+				splitby	 = ',';
+			}
+			var eov = lines[i].split(splitby);
+			if(splitby==' '){
+				document.getElementById('WGS84OUT').value+= eov[0]+' \n';
+				transformData(eov[0], eov[2],eov[1],0);
+			} else { //','
+				document.getElementById('WGS84OUT').value+= eov[2]+' \n';
+				transformData(eov[2], eov[1],eov[0],0);				
+			}
+		} else {
+			var eov = lines[0].split(splitby);
+			if(splitby==' '){
+				document.getElementById('WGS84OUT').value+='aa'+eov[0]+'aa \n';
+				transformData('aa'+eov[0]+'aa', eov[2],eov[1],0);				
+			} else { //','
+				document.getElementById('WGS84OUT').value+='aa'+eov[2]+'aa \n';
+				transformData('aa'+eov[2]+'aa', eov[1],eov[0],0);				
+			}
+
+		}
+	}
+}
+
+function teszt(){
+   //547 693601.000 275362.990
+	var id = 547;
+	var eovy = 693601.000;
+	var eovx = 275362.990;
+	var eovh = 100;
+	transformData(id, eovx,eovy,eovh);
+	var res = transformData(id, eovx,eovy,0);
+	console.log(res);
+
+}
+function transformData(id, eovx, eovy, eovh){
+	fetch('https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber='+id+'&x='+eovx+'&y='+eovy+'&h='+eovh)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not OK');
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Process the retrieved data
+    const value = data.lon + ','+data.lat +',0'
+    console.log(id + ' ' + value);
+    const search=id+' ';
+    document.getElementById('WGS84OUT').value = 
+		document.getElementById('WGS84OUT').value.replace(search,
+    	value);
+  })
+  .catch(error => {
+    // Handle any errors that occurred during the request
+    console.error('Error:', error);
+  });
+}
+function downloadAsKML(){
+const element = document.createElement('a');
+const blob = new Blob(
+		[`<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+   <Document><Placemark><name>` + document.getElementById('foldnev') +'</name>'+
+   '<LinearRing><coordinates>'+
+		 	(document.getElementById('WGS84OUT').value.replaceAll('\n',' ') + 
+		 '</coordinates>\n').replace(' </','</')+
+		 	'</LinearRing></Placemark></Document></kml>'
+		 	]
+		, {type: 'plain/text' });
+const fileUrl = URL.createObjectURL(blob);
+element.setAttribute('href', fileUrl);
+element.setAttribute('download',document.getElementById('foldnev').value+'.kml');
+element.style.display = 'none';
+document.body.appendChild(element);
+element.click();
+document.body.removeChild(element);
+}
+</script>
