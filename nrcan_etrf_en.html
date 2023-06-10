@@ -1,0 +1,96 @@
+<html>
+	<head>
+		<title>NRCAN ETRF2000 converter</title>
+	</head>
+<body>
+	<strong>Please provide <a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp.php">NRCAN</a> results to start :)</strong><br>
+<br/>
+<h1><div id="problem"></div></h1>
+<hr>
+In the NRCAN mail, please click on Summary and copy the whole thing here: (example provided)<br>
+<textarea id="NRCAN" rows="23" cols="80">
+The estimated coordinates ITRF20 2023-05-23 for the 2023-05-24-MP8156_nrcan.obs RINEX file are as follows:
+
+Latitude	N46° 55' 23.3370"	± 0.002 m (95%)
+Longitude	E21° 15' 27.1687"	± 0.002 m (95%)
+Ellipsoidal Height	135.786 m	± 0.008 m (95%)
+[46.92314917,21.25754686,135.786]
+UTM Zone 34 (North)
+Northing	5196656.204 m
+Easting	519608.202 m
+Scale factor (point)	0.99960473
+Scale factor (combined)	0.99958345
+[5196656.204,519608.202,135.786]
+
+Cartesian coordinates
+X	4067097.148	± 0.006 m (95%)
+Y	1582224.335	± 0.003 m (95%)
+Z	4636033.121	± 0.006 m (95%)
+[4067097.148,1582224.335,4636033.121]
+Orbits and Clocks Used: NRCan Rapid
+GNSS Data: GPS & GLONASS
+GRS80 ellipsoid used for (x,y,z) to (lat,lon,h) transformation
+</textarea><br>
+<br>
+<input type = "button" onclick = "szamol()" value = "Szamolj!">  <br>
+<form name=ecttform method=post action=https://www.epncb.oma.be/_productsservices/coord_trans/index.php>
+
+<input type=hidden id=epochtype name=epochtype value='date'><br>
+<input type=hidden id=from_frame_in name=from_frame_in value='ITRF2020'>
+<input type=hidden id=from_epoch_date name=from_epoch_date value=''>
+<input type=hidden id=to_frame_out name=to_frame_out value='ETRF2000'><br>
+Epoch<input type=text id=to_epoch_date name=to_epoch_date value='2000-01-01'><br>
+Cartesian coords<input type=text id=inputvalues name=inputvalues><br>
+<input type=hidden id=transform_button name=transform_button value='Transform'><br><br>
+
+<input type='submit' value='Open ECTT on new page' 
+
+onclick="this.form.target='_blank';return true;">
+
+</form><br>
+Please copy these parameters: <img src="coordinate_to_copy.png"></img> <br>
+
+then open this tool:<h3><a href="https://tool-online.com/en/coordinate-converter.php">Cartesian -> WGS84</a></h3> <br>
+<br>
+Left side pick: WORLD + Cartesian (XYZ)  and put your X Y Z values<br>
+
+Right side pick: Deutschland + WGS84 and the results will show up here :) <br>
+
+<img src="coordinate_converter_sample.png"></img><br>
+
+Then copy back this result to the PI and you're good to go :) <br>
+
+<br> Changelog: </br>
+
+<html>
+</body>
+<!--
+	curl --location --request 
+	GET 'https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber=12&x=184415.841&y=722440.365&h=57.460'
+-->
+<script type="text/javascript">
+function szamol(){
+	document.getElementById('problem').innerHTML ="";
+	var data = document.getElementById('NRCAN').value;
+	//is it ITRF20?
+	console.log(data.length);
+	console.log(data.replaceAll("ITRF20","").length);
+	if(data.length == data.replaceAll("ITRF20","").length){
+		console.log("so we didn't replace anything..");
+		document.getElementById('problem').innerHTML =" Not ITR20 calculation of NRCAN, are you sure calculation was done via Static ITRF?";
+		return;
+	}
+	//Epoch?
+	const epochRe =/ITRF20 ([0-9-]{10}) /g;
+	var epoch = epochRe.exec(data)[1];
+	document.getElementById('from_epoch_date').value=epoch;
+	document.getElementById('to_epoch_date').value=epoch;
+
+	//Cartesian
+	var cartesian = data.split("\n")[17].replace("[","").replace("]",""); 
+	document.getElementById('inputvalues').value ='centipedeBase '+cartesian.replace(","," ").replace(","," ");
+
+	
+}
+
+</script>
