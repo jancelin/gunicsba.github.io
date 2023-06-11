@@ -2,8 +2,14 @@
 	<head>
 		<title>NRCAN ETRF2000 converter</title>
 	</head>
-<body>
-	<strong>Please provide <a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp.php">NRCAN</a> results to start :)</strong><br>
+<body>	
+	First download your log files from the <a href="http://basegnss.local">Raspberry PI</a><br>
+	Open the LOGS tab (if you have File Service running in settings!) then pick the pencil:<br>
+	<img src="log2rinexshort.png" width="800"><img><br><br>
+	Choose the NRCAN option and download the Rinex file.<br>
+	<img src="nrcan.png" width="300"><img><br><br>
+	Open the <strong><a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp.php">NRCAN</a> site and do a Static ITRF </strong> calculation to get the ITRF position.<br>
+<br/>
 <br/>
 <h1><div id="problem"></div></h1>
 <hr>
@@ -59,6 +65,12 @@ Right side pick: Deutschland + WGS84 and the results will show up here :) <br>
 <img src="coordinate_converter_sample.png"></img><br>
 
 Then copy back this result to the PI and you're good to go :) <br>
+
+Lat Lon H is the order <br>
+
+<br><hr>
+<a href="https://www.omnicalculator.com/other/latitude-longitude-distance"> Distance calculator</a><br>
+Idea came from: <a href="https://forum.geocommuns.fr/t/coordinates-transformation-hors-zone-rgf93/827/23?u=gunicsba">Geocomms forum</a><br>
 
 <br> Changelog: </br>
 
