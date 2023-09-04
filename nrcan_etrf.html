@@ -82,7 +82,11 @@ function szamol(){
 	document.getElementById('to_epoch_date').value=epoch;
 
 	//Cartesian
-	var cartesian = data.split("\n")[17].replace("[","").replace("]",""); 
+
+	const cartesianRe =/Cartesian coordinates.*\[(.*)\]/gs;
+	var cartesian = cartesianRe.exec(data)[1];
+	//https://www.agroinform.hu/forum?act=showTopic&tid=5482&page=2#111
+	//var cartesian = data.split("\n")[17].replace("[","").replace("]",""); 
 	document.getElementById('inputvalues').value ='agopengps '+cartesian.replace(","," ").replace(","," ");
 
 	
