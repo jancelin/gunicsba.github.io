@@ -50,6 +50,7 @@ function szamol(){
 				document.getElementById('WGS84OUT').value+= eov[0]+' \n';
 				transformData(eov[0], eov[2],eov[1],0);
 			} else { //','
+				if(eov[2]=='') eov[2]=i;
 				document.getElementById('WGS84OUT').value+= eov[2]+' \n';
 				transformData(eov[2], eov[1],eov[0],0);				
 			}
@@ -59,6 +60,7 @@ function szamol(){
 				document.getElementById('WGS84OUT').value+='aa'+eov[0]+'aa \n';
 				transformData('aa'+eov[0]+'aa', eov[2],eov[1],0);				
 			} else { //','
+				if(eov[2]=='') eov[2]=i;
 				document.getElementById('WGS84OUT').value+='aa'+eov[2]+'aa \n';
 				transformData('aa'+eov[2]+'aa', eov[1],eov[0],0);				
 			}
