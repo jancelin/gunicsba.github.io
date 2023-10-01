@@ -109,15 +109,21 @@ const element = document.createElement('a');
 const blob = new Blob(
 		[`<?xml version="1.0" encoding="utf-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
-   <Document>\n
-      <Placemark>\n
-         <name>` + document.getElementById('foldnev').value +'</name>\n'+
-'            <LinearRing><coordinates>'+
+  <Document>\n
+    <Placemark>\n
+      <name>` + document.getElementById('foldnev').value +'</name>\n'+
+'      <Polygon>\n'+
+'         <tessellate>1</tessellate>\n'+
+'         <outerBoundaryIs>\n'+
+'            <LinearRing>\n'+
+'	       <coordinates>'+
 		 	(document.getElementById('WGS84OUT').value.replaceAll('\n',' ') + 
 		 '</coordinates>\n').replace(' </','</')+
 '            </LinearRing>\n'+
-'       </Placemark>\n'+
-'    </Document>\n'+
+'         </outerBoundaryIs>\n'+
+'      </Polygon>\n'+
+'   </Placemark>\n'+
+' </Document>\n'+
 '</kml>']
 		, {type: 'plain/text' });
 const fileUrl = URL.createObjectURL(blob);
