@@ -114,7 +114,8 @@ const blob = new Blob(
          <name>` + document.getElementById('foldnev').value +'</name>\n'+
 '            <LinearRing><coordinates>'+
 		 	(document.getElementById('WGS84OUT').value.replaceAll('\n',' ') + 
-		 '</coordinates>\n').replace(' </','</')+'</LinearRing>\n'+
+		 '</coordinates>\n').replace(' </','</')+
+'            </LinearRing>\n'+
 '       </Placemark>\n'+
 '    </Document>\n'+
 '</kml>']
