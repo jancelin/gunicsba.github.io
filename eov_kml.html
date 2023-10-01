@@ -111,14 +111,13 @@ const blob = new Blob(
 <kml xmlns="http://www.opengis.net/kml/2.2">
    <Document>\n
       <Placemark>\n
-         <name>` + document.getElementById('foldnev').value +'</name>\n
-            <LinearRing><coordinates>'+
+         <name>` + document.getElementById('foldnev').value +'</name>\n'+
+'            <LinearRing><coordinates>'+
 		 	(document.getElementById('WGS84OUT').value.replaceAll('\n',' ') + 
-		 '</coordinates>\n').replace(' </','</')+'</LinearRing>\n
-       </Placemark>\n
-    </Document>\n
-</kml>'
-		 	]
+		 '</coordinates>\n').replace(' </','</')+'</LinearRing>\n'+
+'       </Placemark>\n'+
+'    </Document>\n'+
+'</kml>']
 		, {type: 'plain/text' });
 const fileUrl = URL.createObjectURL(blob);
 element.setAttribute('href', fileUrl);
