@@ -1,0 +1,134 @@
+<html>
+<body>
+	<textarea id="EOVIN">Tedd a geoJSON-t ide</textarea> <input type = "button" onclick = "szamol()" value = "Bemenet tablazatra alakitasa!"></input>  <br><br>
+<div id="output"></div>
+</body>
+
+<script type="text/javascript">
+function szamol(){
+
+	var input = JSON.parse(document.getElementById('EOVIN').value);
+	console.log(input[0].discreteProducts);
+	var htmltext = "<table> ";
+	htmltext += "<thead><td>ID</td><td>GroupValue</td>";
+	htmltext += "<td>itemDescription</td>";
+	htmltext += "<td>EOV koordinatak</td>";
+	htmltext += "<td></td>";
+	htmltext += "<td>WGS84 koordinatak</td>";
+	htmltext += "<td>Letöltes</td>";
+	htmltext += "</thead>";
+
+	var i = 0;
+	for( var terulet of input[0].discreteProducts) {
+		console.log(terulet.productID);
+		htmltext += "<tr><td>" + i +"</td>";
+		htmltext += "<td>" + terulet.coveredItem.properties.description.itemGroupValue+"</td>";
+		htmltext += "<td id='foldnev"+i+"'>" + terulet.coveredItem.properties.description.itemDescription+"</td>";
+		htmltext += "<td><textarea id='eov_"+i+"' cols='20'>";
+		for(var koordinatapar of terulet.coveredItem.geometry.coordinates[0][0]){
+			htmltext += koordinatapar +"\n";	
+		}
+		htmltext += "</textarea></td>";
+		htmltext += '<td><input type = "button" onclick = "szamolfold('+i+')" value = "Szamolj>>"></td>'
+		htmltext += "<td><textarea id='WGS84OUT"+i+"' cols='30'></textarea></td>";
+		htmltext += '<td><input type = "button" onclick = "downloadAsKML('+i+')" value = "KML">';
+		htmltext += '<input type = "button" onclick = "displayField('+i+')" value = "Megjelenit"></td>';
+		htmltext +="</tr>";
+
+		i++;
+	}
+	htmltext += "</table>";
+	document.getElementById('output').innerHTML = htmltext;
+
+}
+function szamolfold(j) {
+
+	var lines = document.getElementById('eov_'+j).value.split("\n");
+
+	for(var i = 0; i <= lines.length;i++){
+		if( lines[i] == undefined || lines[i].length < 10) continue;
+		if(i != lines.length){
+			var splitby	 = ',';
+			var eov = lines[i].split(splitby);
+				document.getElementById('WGS84OUT'+j).value+= i+' \n';
+				transformData(j,i, eov[1],eov[0],0);				
+		} else {
+			var eov = lines[0].split(splitby);
+			document.getElementById('WGS84OUT'+j).value+='aa'+i+'aa \n';
+			transformData(j,'aa'+i  +'aa', eov[1],eov[0],0);				
+		}
+	}
+
+}
+
+function teszt(){
+   //547 693601.000 275362.990
+	var id = 547;
+	var eovy = 693601.000;
+	var eovx = 275362.990;
+	var eovh = 100;
+	transformData(id, eovx,eovy,eovh);
+	var res = transformData(id, eovx,eovy,0);
+	console.log(res);
+
+}
+function transformData(i,id, eovx, eovy, eovh){
+	fetch('https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber='+id+'&x='+eovx+'&y='+eovy+'&h='+eovh)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not OK');
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Process the retrieved data
+    const value = data.lon + ','+data.lat +',0'
+    console.log(id + ' ' + value);
+    const search=id+' ';
+    document.getElementById('WGS84OUT'+i).value = 
+		document.getElementById('WGS84OUT'+i).value.replace(search,
+    	value);
+  })
+  .catch(error => {
+    // Handle any errors that occurred during the request
+    console.error('Error:', error);
+  });
+}
+
+function downloadAsKML(i){
+const element = document.createElement('a');
+const blob = new Blob(
+		[`<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>\n
+    <Placemark>\n
+      <name>` + document.getElementById('foldnev'+i).innerHTML +'</name>\n'+
+'      <Polygon>\n'+
+'         <tessellate>1</tessellate>\n'+
+'         <outerBoundaryIs>\n'+
+'            <LinearRing>\n'+
+'	       <coordinates>'+
+		 	(document.getElementById('WGS84OUT'+i).value.replaceAll('\n',' ') + 
+		 '</coordinates>\n').replace(' </','</')+
+'            </LinearRing>\n'+
+'         </outerBoundaryIs>\n'+
+'      </Polygon>\n'+
+'   </Placemark>\n'+
+' </Document>\n'+
+'</kml>']
+		, {type: 'plain/text' });
+const fileUrl = URL.createObjectURL(blob);
+element.setAttribute('href', fileUrl);
+console.log(document.getElementById('foldnev'+i));
+element.setAttribute('download',document.getElementById('foldnev'+i).innerHTML+'.kml');
+element.style.display = 'none';
+document.body.appendChild(element);
+element.click();
+document.body.removeChild(element);
+}
+
+
+
+</script>
+
+</html>
