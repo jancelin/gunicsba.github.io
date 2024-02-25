@@ -1,0 +1,247 @@
+
+<html>
+<body>
+<!-- The `multiple` attribute lets users select multiple files. -->
+Válaszd ki a Dokumentumok/AgOpenGPS/Fields/AllFields.kml -t és lássuk a naplót :) <br>
+<input type="file" id="file-selector" accept=".kml">
+<input type="button" id="download" onclick="downloadExcel()" value="Táblázat excelbe!"></input>
+<script>
+	function downloadExcel(){
+    // Variable to store the final csv data
+    let csv_data = [];
+ 
+    // Get each row data
+		let rows = document.getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) {
+        let cols = rows[i].querySelectorAll('td,th'); 
+        // Stores each csv row data
+        let csvrow = [];
+        for (let j = 0; j < cols.length; j++) {
+ 
+            // Get the text data of each cell of
+            // a row and push it to csvrow
+            csvrow.push('"'+cols[j].innerHTML+'"');
+        }
+        // Combine each column value with comma
+        csv_data.push(csvrow.join(","));
+    }
+    // Combine each row data with new line character
+    csv_data = csv_data.join('\n');
+
+    CSVFile = new Blob(["\uFEFF"+csv_data], { type: "text/csv" });
+ 
+    /* We will use this function later to download
+    the data in a csv file downloadCSVFile(csv_data);
+    */
+    const element = document.createElement('a');
+	const fileUrl = URL.createObjectURL(CSVFile);
+	element.setAttribute('href', fileUrl);
+	element.setAttribute('download','lofasz.csv');
+	element.style.display = 'none';
+	document.body.appendChild(element);
+	element.click();
+	document.body.removeChild(element);
+
+
+	}
+</script>
+<script>
+  const fileSelector = document.getElementById('file-selector');
+  fileSelector.addEventListener('change', (event) => {
+    const fileList = event.target.files;
+    console.log(fileList[0]);
+    const reader = new FileReader();
+    reader.addEventListener(
+    "load",
+    () => {
+      // this will then display a text file
+//      content.innerText = reader.result;
+//      console.log(reader.result);
+      var parser = new DOMParser();
+			var xmlDoc = parser.parseFromString(reader.result,"text/xml");
+			console.log(xmlDoc.getElementsByTagName("description"));
+			var tasks = xmlDoc.getElementsByTagName("description");
+				var htmltext = "<table> ";
+	htmltext += "<thead><td>ID</td><td>Föld</td>";
+	htmltext += "<td>Dátum</td>";
+	htmltext += "<td>Idő</td>";
+	htmltext += "<td>Terület</td>";
+	htmltext += "<td>Művelt</td>";
+	htmltext += "<td>Különbség</td>";
+	htmltext += "<td>Munkaeszköz szélesség</td>";
+	htmltext += "</thead>";
+			for (var i = tasks.length - 1; i >= 0; i--) {
+				htmltext += "<tr><td>";
+				htmltext += i;
+				var tmp = tasks[i].innerHTML.split("\n");
+				htmltext += "</td><td>";
+				//htmltext += tmp[0];
+				console.log(tmp);
+				var tmpfield = tmp[0].replace("Field: ","").replace("   ","").split(" ");
+				console.log(tmpfield);
+				if(tmpfield.length > 3) {
+					for (var j = 0 ; j < tmpfield.length-2; j++) {
+						htmltext += tmpfield[j];
+						htmltext += " ";
+					}
+					htmltext += "</td><td>";
+					htmltext += tmpfield[tmpfield.length-2];
+					htmltext += "</td><td>";
+					htmltext += tmpfield[tmpfield.length-1].replace("-",":").replace("_",":");
+				} else {
+					htmltext += "</td><td>";
+					htmltext += "</td><td>";
+				}
+				for(var j = 1 ; j < 4 ; j++){
+					htmltext += "</td><td>";
+					htmltext += tmp[j].replace("Field: ","").replace("Worked Hectares: ","")
+						.replace("Total Hectares: ","").replace("Missing Hectares: ","");
+				}
+				htmltext += "</td><td>";
+				htmltext += tmp[7].replace("Tool Width: ","");
+				console.log(tmp);
+				htmltext += "</td></tr>";
+			}
+			htmltext += "</table>";
+			document.getElementById('output').innerHTML = htmltext;
+
+    },
+    false,
+  );
+   reader.readAsText(fileList[0]);
+
+
+  });
+</script>
+<br><br>
+<div id="output"></div>
+</body>
+
+<script type="text/javascript">
+function szamol(){
+
+	var input = JSON.parse(document.getElementById('EOVIN').value);
+	console.log(input[0].discreteProducts);
+	var htmltext = "<table> ";
+	htmltext += "<thead><td>ID</td><td>GroupValue</td>";
+	htmltext += "<td>itemDescription</td>";
+	htmltext += "<td>EOV koordinatak</td>";
+	htmltext += "<td></td>";
+	htmltext += "<td>WGS84 koordinatak</td>";
+	htmltext += "<td>Letöltes</td>";
+	htmltext += "</thead>";
+
+	var i = 0;
+	for( var terulet of input[0].discreteProducts) {
+		console.log(terulet.productID);
+		htmltext += "<tr><td>" + i +"</td>";
+		htmltext += "<td>" + terulet.coveredItem.properties.description.itemGroupValue+"</td>";
+		htmltext += "<td id='foldnev"+i+"'>" + terulet.coveredItem.properties.description.itemDescription+"</td>";
+		htmltext += "<td><textarea id='eov_"+i+"' cols='20'>";
+		for(var koordinatapar of terulet.coveredItem.geometry.coordinates[0][0]){
+			htmltext += koordinatapar +"\n";	
+		}
+		htmltext += "</textarea></td>";
+		htmltext += '<td><input type = "button" onclick = "szamolfold('+i+')" value = "Szamolj>>"></td>'
+		htmltext += "<td><textarea id='WGS84OUT"+i+"' cols='30'></textarea></td>";
+		htmltext += '<td><input type = "button" onclick = "downloadAsKML('+i+')" value = "KML">';
+		htmltext += '<input type = "button" onclick = "displayField('+i+')" value = "Megjelenit"></td>';
+		htmltext +="</tr>";
+
+		i++;
+	}
+	htmltext += "</table>";
+	document.getElementById('output').innerHTML = htmltext;
+
+}
+function szamolfold(j) {
+
+	var lines = document.getElementById('eov_'+j).value.split("\n");
+
+	for(var i = 0; i <= lines.length;i++){
+		if( lines[i] == undefined || lines[i].length < 10) continue;
+		if(i != lines.length){
+			var splitby	 = ',';
+			var eov = lines[i].split(splitby);
+				document.getElementById('WGS84OUT'+j).value+= i+' \n';
+				transformData(j,i, eov[1],eov[0],0);				
+		} else {
+			var eov = lines[0].split(splitby);
+			document.getElementById('WGS84OUT'+j).value+='aa'+i+'aa \n';
+			transformData(j,'aa'+i  +'aa', eov[1],eov[0],0);				
+		}
+	}
+
+}
+
+function teszt(){
+   //547 693601.000 275362.990
+	var id = 547;
+	var eovy = 693601.000;
+	var eovx = 275362.990;
+	var eovh = 100;
+	transformData(id, eovx,eovy,eovh);
+	var res = transformData(id, eovx,eovy,0);
+	console.log(res);
+
+}
+function transformData(i,id, eovx, eovy, eovh){
+	fetch('https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber='+id+'&x='+eovx+'&y='+eovy+'&h='+eovh)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not OK');
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Process the retrieved data
+    const value = data.lon + ','+data.lat +',0'
+    console.log(id + ' ' + value);
+    const search=id+' ';
+    document.getElementById('WGS84OUT'+i).value = 
+		document.getElementById('WGS84OUT'+i).value.replace(search,
+    	value);
+  })
+  .catch(error => {
+    // Handle any errors that occurred during the request
+    console.error('Error:', error);
+  });
+}
+
+function downloadAsKML(i){
+const element = document.createElement('a');
+const blob = new Blob(
+		[`<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>\n
+    <Placemark>\n
+      <name>` + document.getElementById('foldnev'+i).innerHTML +'</name>\n'+
+'      <Polygon>\n'+
+'         <tessellate>1</tessellate>\n'+
+'         <outerBoundaryIs>\n'+
+'            <LinearRing>\n'+
+'	       <coordinates>'+
+		 	(document.getElementById('WGS84OUT'+i).value.replaceAll('\n',' ') + 
+		 '</coordinates>\n').replace(' </','</')+
+'            </LinearRing>\n'+
+'         </outerBoundaryIs>\n'+
+'      </Polygon>\n'+
+'   </Placemark>\n'+
+' </Document>\n'+
+'</kml>']
+		, {type: 'plain/text' });
+const fileUrl = URL.createObjectURL(blob);
+element.setAttribute('href', fileUrl);
+console.log(document.getElementById('foldnev'+i));
+element.setAttribute('download',document.getElementById('foldnev'+i).innerHTML+'.kml');
+element.style.display = 'none';
+document.body.appendChild(element);
+element.click();
+document.body.removeChild(element);
+}
+
+
+
+</script>
+
+</html>
