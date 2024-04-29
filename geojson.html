@@ -19,7 +19,14 @@ function szamol(){
 	htmltext += "</thead>";
 
 	var i = 0;
-	for( var terulet of input[0].discreteProducts) {
+	var myarray;
+	if(input[0].hasOwnProperty("discreteProducts")){
+		myarray = input[0].discreteProducts;	
+	} else {
+		myarray = input;
+	}
+	
+	for( var terulet of myarray) {
 		console.log(terulet.productID);
 		htmltext += "<tr><td>" + i +"</td>";
 		htmltext += "<td>" + terulet.coveredItem.properties.description.itemGroupValue+"</td>";
