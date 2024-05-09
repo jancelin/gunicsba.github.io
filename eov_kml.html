@@ -108,7 +108,10 @@ function displayResults(){
   	id: 'overlay',
 	 	type: 'fill',
    	source: 'overlay',
-	 	paint: {}
+	 	paint: {
+	 			fill-color: '#'+Math.floor(Math.random()*16777215).toString(16), 
+	 			fill-opacity: 0.3
+	 	}
   });
   console.log("Panning to: " + tempGeo.geometry.coordinates[0]);
   var polygon = turf.points(tempGeo.geometry.coordinates);
