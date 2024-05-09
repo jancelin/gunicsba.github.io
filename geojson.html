@@ -140,8 +140,8 @@ function displayField(j){
 	 	type: 'fill',
    	source: 'overlay'+j,
 	 	paint: {
-	 			fill-color: '#'+Math.floor(Math.random()*16777215).toString(16), 
-	 			fill-opacity: 0.3
+	 			'fill-color': '#'+Math.floor(Math.random()*16777215).toString(16), 
+	 			'fill-opacity': 0.3
 	 	}
   });
   console.log("Panning to: " + tempGeo.geometry.coordinates[0]);
