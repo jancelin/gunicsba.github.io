@@ -1,10 +1,67 @@
 <html>
+
+<link
+  href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
+  rel="stylesheet"
+/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js"></script>
+<!-- <script src='libs/turf.min.js'></script> -->
+<style type="text/css">
+	body {
+  margin: 0;
+  padding: 0;
+}
+
+#map {
+	height: 300px;
+}
+#nomap {
+	position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+</style>
+
 <body>
 	<textarea id="EOVIN">Tedd a geoJSON-t ide</textarea> <input type = "button" onclick = "szamol()" value = "Bemenet tablazatra alakitasa!"></input>  <br><br>
+<div id="map"></div>
 <div id="output"></div>
 </body>
 
 <script type="text/javascript">
+//mapbox stuff 
+	mapboxgl.accessToken = 'pk.eyJ1IjoiZ3VuaWNzYmEiLCJhIjoiY2x2emdtODF5MDJyZzJrcGg4anFocDMzZiJ9.5AHFwVRqLvSlNfCDx1musA';
+	const map = new mapboxgl.Map({
+  	container: 'map', // container id
+  	style: 'mapbox://styles/mapbox/light-v11', // stylesheet location
+  	center: [19.51, 46.88], // starting position
+  	zoom: 16 // starting zoom
+	});
+
+	var coordSample ;// = [[19.5, 46.5],[19.5, 47],[19, 47],[19, 46.5],[19.5, 46.5]];
+  const geoSample =  { 
+    		type: 'Feature',
+    		properties: {},
+    		geometry: {
+    			type: 'LineString',
+    			coordinates: coordSample
+    		}
+      };
+  	map.on('load', () => {
+/*
+			map.addSource('kecskemet',{type: 'geojson', data: geoSample });
+  		map.addLayer({
+    		id: 'kecskemet',
+	    	type: 'fill',
+  	  	source: 'kecskemet',
+	    	paint: {}
+  		});
+*/
+		});
+//mapbox stuff 
+
 function szamol(){
 
 	var input = JSON.parse(document.getElementById('EOVIN').value);
@@ -65,7 +122,29 @@ function szamolfold(j) {
 			transformData(j,'aa'+i  +'aa', eov[1],eov[0],0);				
 		}
 	}
-
+}
+function displayField(j){
+	var coordinates = document.getElementById('WGS84OUT'+j).value.replaceAll(",0","").split("\n");
+	var data = "[";
+	for(var i = 0; i <= coordinates.length;i++){
+		if(String(coordinates[i]).length < 10) continue;
+		if(data.length > 5) data += ',';
+		data += '[' + coordinates[i] + ']';
+	}
+	data += "]";
+	var tempGeo = geoSample;
+	tempGeo.geometry.coordinates = JSON.parse(data);
+	map.addSource('overlay'+j,{type: 'geojson', data: tempGeo });
+  map.addLayer({
+  	id: 'overlay'+j,
+	 	type: 'fill',
+   	source: 'overlay'+j,
+	 	paint: {}
+  });
+  console.log("Panning to: " + tempGeo.geometry.coordinates[0]);
+  var polygon = turf.points(tempGeo.geometry.coordinates);
+  console.log("Pan to: " +turf.center(polygon).geometry.coordinates);
+  map.panTo(turf.center(polygon).geometry.coordinates, {duration: 2000});
 }
 
 function teszt(){

@@ -1,4 +1,29 @@
 <html>
+
+<link
+  href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
+  rel="stylesheet"
+/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<script src="libs/turf.min.js"></script>
+<!-- <script src='libs/turf.min.js'></script> -->
+<style type="text/css">
+	body {
+  margin: 0;
+  padding: 0;
+}
+
+#map {
+	height: 300px;
+}
+#nomap {
+	position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+</style>
+
 	<head>
 		<title>EOV KML konvertáló</title>
 	</head>
@@ -19,18 +44,21 @@ vagy
 <input type = "button" onclick = "szamol()" value = "Szamolj!">  <br><br>
 Várd meg amíg az alsó szöveges mezőben minden szám megjelenik.
 Aztán katt:<br>
-<input type = "button" onclick = "downloadAsKML()" value = "KML-be!">  <br><br>
+<input type = "button" onclick = "downloadAsKML()" value = "KML-be!"> 
+<input type = "button" onclick = "displayResults()" value = "Megjelenít">  <br><br>
 Várj egy picit amíg az összes koordinátát átkonvertáljuk!
 
 Utána a Művelési határra rányomva hozzá tudjuk adni az AgOpenGPS-hez :) <br>
 <textarea id="WGS84OUT" rows="10" cols="40"></textarea><br>
 
+<div id="map"></div>
 
 <a href="https://eht2.gnssnet.hu/api-dokumentacio"> API dokumentáció</a>
 <br> Változások: </br>
 <li> 2023-05-31 -> támogatva van a vesszővel elválasztott EOV koordináta lista is</li>
 <li> 2023-09-30 -> Vesszővel elválasztott formánál nem szükséges a pont ID beírása</li>
 <li> 2023-10-01 -> KML fájl formázás, generált KML immár területként jelenik meg google earthben</li>
+<li> 2024-05-09 -> Játszottam egy picit a MapBoxxal így van előnézeti kép is :)
 
 <html>
 </body>
@@ -39,6 +67,54 @@ Utána a Művelési határra rányomva hozzá tudjuk adni az AgOpenGPS-hez :) <b
 	GET 'https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber=12&x=184415.841&y=722440.365&h=57.460'
 -->
 <script type="text/javascript">
+//mapbox stuff 
+	mapboxgl.accessToken = 'pk.eyJ1IjoiZ3VuaWNzYmEiLCJhIjoiY2x2emdtODF5MDJyZzJrcGg4anFocDMzZiJ9.5AHFwVRqLvSlNfCDx1musA';
+	const map = new mapboxgl.Map({
+  	container: 'map', // container id
+  	style: 'mapbox://styles/mapbox/light-v11', // stylesheet location
+  	center: [19.51, 46.88], // starting position
+  	zoom: 15 // starting zoom
+	});
+
+	var coordSample;
+  const geoSample =  { 
+    		type: 'Feature',
+    		properties: {},
+    		geometry: {
+    			type: 'LineString',
+    			coordinates: coordSample
+    		}
+      };
+  	map.on('load', () => {
+		});
+//mapbox stuff 
+function displayResults(){
+	var coordinates = document.getElementById('WGS84OUT').value.replaceAll(",0","").split("\n");
+	var data = "[";
+	for(var i = 0; i <= coordinates.length;i++){
+		if(String(coordinates[i]).length < 10) continue;
+		if(data.length > 5) data += ',';
+		data += '[' + coordinates[i] + ']';
+	}
+	data += "]";
+	var tempGeo = geoSample;
+	tempGeo.geometry.coordinates = JSON.parse(data);
+	if(map.getSource('overlay')){
+		map.removeLayer('overlay'); 
+		map.removeSource('overlay');
+	}
+	map.addSource('overlay',{type: 'geojson', data: tempGeo });
+  map.addLayer({
+  	id: 'overlay',
+	 	type: 'fill',
+   	source: 'overlay',
+	 	paint: {}
+  });
+  console.log("Panning to: " + tempGeo.geometry.coordinates[0]);
+  var polygon = turf.points(tempGeo.geometry.coordinates);
+  console.log("Pan to: " +turf.center(polygon).geometry.coordinates);
+  map.panTo(turf.center(polygon).geometry.coordinates, {duration: 2000});
+}
 function szamol(){
 	var lines = document.getElementById('EOVIN').value.split('\n');
 	var splitby=' ';
