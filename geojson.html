@@ -25,7 +25,7 @@
 </style>
 
 <body>
-	<textarea id="EOVIN" width=40>Tedd a geoJSON-t ide</textarea><input type = "button" onclick = "szamol()" value = "Bemenet tablazatra alakitasa!"></input>
+	<textarea id="EOVIN" width=40>Tedd a geoJSON-t ide</textarea><input type = "button" onclick = "szamol()" rows=5 cols=20 value = "Bemenet tablazatra alakitasa!"></input>
 	  <br><br>
 <div id="map"></div>
 <div id="output"></div>
@@ -33,7 +33,7 @@
 <div id="kombi">
 		<div id="foldnevKOMBI">kombinalt</div>
 		<textarea id='WGS84OUTKOMBI' cols='30'></textarea>;
-		Erzekenyseg megjelenítéshez, konvertáláshoz, KMLhez: <input id="concavity" type="number" value="4"></input>;
+		Erzekenyseg megjelenítéshez, konvertáláshoz, KMLhez: <input id="concavity" type="number" value="1"></input>;
 		<input type = "button" onclick = "downloadAsKML('KOMBI',true)" value = "Egyesített KML"></input>;
 		<input type = "button" onclick = "displayField('KOMBI')" value = "Megjelenit"></input>;
 </div>
