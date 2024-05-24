@@ -245,7 +245,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-            function displayPopup() {
+    function displayPopup() {
         // Création d'un élément div pour contenir la notice
         var popup = document.createElement('div');
         popup.id = 'popup';
@@ -259,19 +259,74 @@
         popup.style.borderRadius = '10px';
         popup.style.zIndex = '9999';
 
-        // Ajout du contenu de la notice
+        // Ajout du contenu de la notice en anglais et en français
         popup.innerHTML = `
-            <h2>Notice:</h2>
-            <p>This tool helps convert coordinates from NRCAN ITRF20 to EUROPE ETRF2000.</p>
-            <p>Instructions:</p>
-            <ol>
-                <li>Open the NRCAN site and perform a Static ITRF calculation to obtain the ITRF position.</li>
-                <li>In the NRCAN mail, click on Summary and copy the entire content into the provided textarea.</li>
-                <li>Click "Extract data" to extract relevant information.</li>
-                <li>Paste the ECTT result into the corresponding textarea and click "Convert XYZ to Lat Long Elev".</li>
-                <li>Final converted coordinates will appear, and you can export the form data as a .txt file.</li>
+            <h2>Notice / Avis :</h2>
+            
+<!-- Texte en anglais -->
+<h3>English:</h3>
+<p>Welcome to the NRCAN ITRF20 to EUROPE ETRF2000 Converter!</p>
+<p>This tool is designed to help you convert coordinates from the North American Datum (NRCAN ITRF20) to the European Terrestrial Reference Frame 2000 (EUROPE ETRF2000).</p>
+<p><strong>Instructions:</strong></p>
+<ol>
+    <li>Open the NRCAN website and perform a Static ITRF calculation. Activate ITRF and upload your xxx-xx-xx-xxxx-nrcan.obs file. Click "Submit to PPP".</li>
+    <li>In the email received from NRCAN, click on Summary and copy the entire content into the first textarea above.</li>
+    <li>Click the "1. Extract data!" button to extract relevant information from the summary.</li>
+    <li>Then click on the second button: "2. Click to display the ECTT result (ITRF20>ETRF2000) in a new page, copy the result".</li>
+    <li>A new page will open, copy all the data from the "RESULTS" area.</li>
+    <li>Paste this ECTT result into the corresponding textarea.</li>
+    <li>Click the "Convert XYZ to Lat Long Elev" button to initiate the final conversion process.</li>
+    <li>The final converted coordinates will appear in the last textarea:
+        <ul>
+            <li>You can export the form data as a .txt file using the "Export Form Data .txt" button to provide it during your GNSS base declaration on the CentipedeRTK network.</li>
+            <li>You can copy the coordinates to paste them into Settings > Main Service > Base coordinates.</li>
+        </ul>
+    </li>
+</ol>
+
+<!-- Texte en hongrois -->
+<h3>Hungarian:</h3>
+<p>Üdvözöljük a NRCAN ITRF20 és az EUROPE ETRF2000 konverterben!</p>
+<p>Ez az eszköz segít a koordináták átváltásában az Észak-amerikai Datumról (NRCAN ITRF20) az Európai Földi Hivatkozási Rendszer 2000-re (EUROPE ETRF2000).</p>
+<p><strong>Utasítások:</strong></p>
+<ol>
+    <li>Nyissa meg a NRCAN webhelyet, és végezzen statikus ITRF számítást. Aktiválja az ITRF-et, és töltse fel a xxx-xx-xx-xxxx-nrcan.obs fájlját. Kattintson a "Submit to PPP" gombra.</li>
+    <li>A NRCAN-tól kapott e-mailben kattintson a "Summary"-ra, és másolja be az összes tartalmat a fenti első szövegdobozba.</li>
+    <li>Kattintson az "1. Extract data!" gombra a releváns információk kinyeréséhez a összegzésből.</li>
+    <li>Ezután kattintson a második gombra: "2. Click to display the ECTT result (ITRF20>ETRF2000) in a new page, copy the result".</li>
+    <li>Egy új oldal jelenik meg, másolja ki az adatokat az "RESULTS" területről.</li>
+    <li>Illessze be az ECTT eredményét a megfelelő szövegdobozba.</li>
+    <li>Kattintson a "Convert XYZ to Lat Long Elev" gombra az utolsó átalakítási folyamat elindításához.</li>
+    <li>A végső átalakított koordináták megjelennek az utolsó szövegdobozban:
+        <ul>
+            <li>Exportálhatja a formanyomtatvány adatait .txt fájl formájában a "Export Form Data .txt" gomb segítségével, hogy azt a CentipedeRTK hálózaton történő GNSS bázisnyilatkozatánál adjon meg.</li>
+            <li>Másolhatja a koordinátákat a beállítások > Főszolgáltatás > Báziskoordinátákba való beillesztéshez.</li>
+        </ul>
+    </li>
+</ol>
+
+<!-- Texte en français -->
+<h3>Français :</h3>
+<p>Bienvenue sur le Convertisseur NRCAN ITRF20 vers EUROPE ETRF2000 !</p>
+<p>Cet outil est conçu pour vous aider à convertir les coordonnées du Système de Référence international ITRF20 produit par NRCAN (SCRS-PPP) en Référentiel Terrestre Européen 2000 (EUROPE ETRF2000).</p>
+<p><strong>Instructions :</strong></p>
+<ol>
+    <li>Ouvrez le site web de NRCAN, ouvrez/activez votre session. Effectuez un calcul statique. Activez ITRF et déposez votre fichier xxx-xx-xx-xxxx-nrcan.obs. Cliquez sur "Submit to PPP".</li>
+    <li>Quelques instants après, dans l'email reçu de NRCAN, cliquez sur Résumé et copiez l'intégralité du contenu dans la première zone de texte ci-dessus.</li>
+    <li>Cliquez sur le bouton "1. Extract data!" afin d'extraire les informations pertinentes du résumé.</li>
+    <li>Ensuite, cliquez sur le deuxième bouton : "2. Click to display the ECTT result (ITRF20>ETRF2000) in a new page, copy the result".</li>
+    <li>Une nouvelle page s'ouvrira, copiez toutes les données de la zone "RESULTS".</li>
+    <li>Collez ce résultat ECTT dans la zone de texte correspondante.</li>
+    <li>Cliquez sur le bouton "Convertir XYZ en Lat Long Elev" pour lancer le dernier processus de conversion.</li>
+    <li>Les coordonnées converties finales apparaîtront dans la dernière zone de texte :
+        <ul>
+            <li>Vous pourrez exporter les données du formulaire sous forme de fichier .txt en utilisant le bouton "Export Form Data .txt" afin de le fournir au moment de la déclaration de votre base GNSS sur le réseau CentipedeRTK.</li>
+            <li>Vous pourrez copier les coordonnées pour les coller dans Settings > Main Service > Base coordinates.</li>
+        </ul>
+    </li>
             </ol>
-            <button onclick="closePopup()">Close</button>
+            
+            <button onclick="closePopup()">Close / Fermer</button>
         `;
 
         // Ajout du popup à la page
