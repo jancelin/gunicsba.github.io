@@ -61,6 +61,7 @@
     <div id="problem"></div>
     <div class="container">
         <h1>NRCAN ITRF20 to EUROPE ETRF2000 Converter</h1>
+        <button onclick="displayPopup()">Show Instructions</button>
         <p>Open the <strong><a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp.php" target="_blank">NRCAN</a></strong> site and do a Static ITRF calculation to get the ITRF position.</p>
         <hr>
         <p>In the NRCAN mail, please click on Summary and copy the whole thing here:</p>
@@ -244,6 +245,46 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+            function displayPopup() {
+        // Création d'un élément div pour contenir la notice
+        var popup = document.createElement('div');
+        popup.id = 'popup';
+        popup.style.position = 'fixed';
+        popup.style.top = '50%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.backgroundColor = '#fff';
+        popup.style.padding = '20px';
+        popup.style.border = '2px solid #333';
+        popup.style.borderRadius = '10px';
+        popup.style.zIndex = '9999';
+
+        // Ajout du contenu de la notice
+        popup.innerHTML = `
+            <h2>Notice:</h2>
+            <p>This tool helps convert coordinates from NRCAN ITRF20 to EUROPE ETRF2000.</p>
+            <p>Instructions:</p>
+            <ol>
+                <li>Open the NRCAN site and perform a Static ITRF calculation to obtain the ITRF position.</li>
+                <li>In the NRCAN mail, click on Summary and copy the entire content into the provided textarea.</li>
+                <li>Click "Extract data" to extract relevant information.</li>
+                <li>Paste the ECTT result into the corresponding textarea and click "Convert XYZ to Lat Long Elev".</li>
+                <li>Final converted coordinates will appear, and you can export the form data as a .txt file.</li>
+            </ol>
+            <button onclick="closePopup()">Close</button>
+        `;
+
+        // Ajout du popup à la page
+        document.body.appendChild(popup);
+    }
+
+    function closePopup() {
+        var popup = document.getElementById('popup');
+        if (popup) {
+            document.body.removeChild(popup);
+        }
+    }
+</script>
     </script> 
 </body>
 </html>
