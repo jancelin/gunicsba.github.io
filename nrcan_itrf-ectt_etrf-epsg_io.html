@@ -1,0 +1,110 @@
+<html>
+	<head>
+		<title>NRCAN ETRF2000 converter</title>
+	</head>
+<body>	
+	First download your log files from the <a href="http://basegnss.local">Raspberry PI</a><br><br>
+	If you can please use logs that are more than 15 days old that will give you more precise results.( NRCan Ultra-rapid VS NRCan/IGS final )<br><br>
+	Open the LOGS tab (if you have File Service running in settings!) then pick the pencil:<br>
+	<img src="log2rinexshort.png" width="800"><img><br><br>
+	Choose the NRCAN option and download the Rinex file.<br>
+	<img src="nrcan.png" width="300"><img><br><br>
+	Open the <strong><a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp.php">NRCAN</a> site and do a Static ITRF </strong> calculation to get the ITRF position.<br>
+<br/>
+<br/>
+<h1><div id="problem"></div></h1>
+<hr>
+In the NRCAN mail, please click on Summary and copy the whole thing here:<br>
+<textarea id="NRCAN" rows="23" cols="80" placeholder="The estimated coordinates ITRF20 2023-05-23 for the 2023-05-24-MP8156_nrcan.obs RINEX file are as follows:
+
+..."></textarea><br>
+<br>
+<input type = "button" onclick = "szamol()" value = "Calculate!">  <br>
+<form name=ecttform method=post action=https://www.epncb.oma.be/_productsservices/coord_trans/index.php>
+
+<input type=hidden id=epochtype name=epochtype value='date'><br>
+<input type=hidden id=from_frame_in name=from_frame_in value='ITRF2020'>
+<input type=hidden id=from_epoch_date name=from_epoch_date value=''>
+<input type=hidden id=to_frame_out name=to_frame_out value='ETRF2000'><br>
+Epoch<input type=text id=to_epoch_date name=to_epoch_date value='2000-01-01'><br>
+Cartesian coords<input type=text id=inputvalues name=inputvalues><br>
+<input type=hidden id=transform_button name=transform_button value='Transform'><br><br>
+
+<input type='submit' value='Open ECTT on new page' 
+
+onclick="this.form.target='_blank';return true;">
+
+</form><br>
+Please copy these parameters: <img src="coordinate_to_copy.png"></img> <br>
+
+then open this tool:<h3><a href="https://tool-online.com/en/coordinate-converter.php">Cartesian -> WGS84</a></h3> <br>
+<br>
+Left side pick: WORLD + Cartesian (XYZ)  and put your X Y Z values<br>
+
+Right side pick: Deutschland + WGS84 and the results will show up here :) <br>
+
+<img src="coordinate_converter_sample.png"></img><br>
+
+Then copy back this result to the PI and you're good to go :) <br>
+
+Lat Lon H is the order <br>
+<h2>Registration:</h2><br>
+<br>Send a mail to: contact@centipede.fr with the following details:
+<br>
+<br>Hello,
+<br>
+<br>I'd like to declare my base station.
+<br>* Mount name: ~4 characters and uppercase! (check that it doesn't exists in <a href="caster.centipde.fr">caster.centipde.fr</a>
+<br>* Location: ~Country, City~
+<br>* Owners name: ~Your name~
+<br>* Coordinates after transformation: ~What you've just calculated for example:  45.9000000 20.00000000 132.000~
+<br>* Equipment used: Raspberry Pi 4 + Ardusimple Zed F9P + White antenna
+<br>
+<br>Regards,
+<br>
+<br>1-2 pictures of the antenna placement
+<br>Full output zip attached.
+<br>
+<br><hr>
+<br><hr>
+<a href="https://www.omnicalculator.com/other/latitude-longitude-distance"> Distance calculator</a><br>
+Idea came from: <a href="https://forum.geocommuns.fr/t/coordinates-transformation-hors-zone-rgf93/827/23?u=gunicsba">Geocomms forum</a><br>
+
+<br> Changelog: </br>
+
+<html>
+</body>
+<!--
+	curl --location --request 
+	GET 'https://eht2.gnssnet.hu/api/transformation/eov-to-etrs89?pointNumber=12&x=184415.841&y=722440.365&h=57.460'
+-->
+<script type="text/javascript">
+function szamol(){
+	document.getElementById('problem').innerHTML ="";
+	var data = document.getElementById('NRCAN').value;
+	//is it ITRF20?
+	console.log(data.length);
+	console.log(data.replaceAll("ITRF20","").length);
+	if(data.length == data.replaceAll("ITRF20","").length){
+		console.log("so we didn't replace anything..");
+		document.getElementById('problem').innerHTML =" Not ITR20 calculation of NRCAN, are you sure calculation was done via Static ITRF?";
+		return;
+	}
+	//Epoch?
+	const epochRe =/ITRF20 ([0-9-]{10}) /g;
+	var epoch = epochRe.exec(data)[1];
+	document.getElementById('from_epoch_date').value=epoch;
+	document.getElementById('to_epoch_date').value=epoch;
+
+	//Cartesian
+	const cartesianRe =/Cartesian coordinates.*\[(.*)\]/gs;
+	var cartesian = cartesianRe.exec(data)[1];
+	//https://www.agroinform.hu/forum?act=showTopic&tid=5482&page=2#111
+	//var cartesian = data.split("\n")[17].replace("[","").replace("]",""); 
+
+	document.getElementById('inputvalues').value ='centipedeBase '+cartesian.replace(","," ").replace(","," ");
+
+	
+}
+
+</script>
