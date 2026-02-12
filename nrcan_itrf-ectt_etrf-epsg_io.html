@@ -126,26 +126,40 @@
         }
         function szamol(){
             document.getElementById('problem').innerHTML ="";
-            var data = document.getElementById('NRCAN').value;
-            //is it ITRF20?
-            console.log(data.length);
-            console.log(data.replaceAll("ITRF20","").length);
-            if(data.length == data.replaceAll("ITRF20","").length){
-                console.log("so we didn't replace anything..");
-                alert(" No summary of NRCAN, please paste summary from NRCAN Static ITRF ");
+            var data = (document.getElementById('NRCAN').value || "");
+
+            // Basic sanity checks (NRCAN Summary content)
+            if(!/estimated coordinates/i.test(data) || !/Cartesian coordinates/i.test(data)){
+                alert("No valid NRCAN Summary detected. Please paste the Summary from NRCAN Static ITRF.");
                 return;
             }
-            //Epoch?
-            const epochRe =/ITRF20 ([0-9-]{10}) /g;
-            var epoch = epochRe.exec(data)[1];
+
+            // Epoch: supports both old and new NRCAN formats:
+            //  - "ITRF20 2025-05-20 ..."
+            //  - "ITRF2020/IGc20 2026-02-02 ..."
+            const epochRe = /ITRF(?:20|2020)(?:\/[A-Za-z0-9]+)?\s+([0-9-]{10})\b/i;
+            const epochMatch = data.match(epochRe);
+            if(!epochMatch){
+                alert("Epoch not found in NRCAN Summary. Expected something like 'ITRF20 YYYY-MM-DD' or 'ITRF2020/XXXX YYYY-MM-DD'.");
+                return;
+            }
+            var epoch = epochMatch[1];
             document.getElementById('from_epoch_date').value=epoch;
             document.getElementById('to_epoch_date').value=epoch;
 
-            //Cartesian
-            const cartesianRe =/Cartesian coordinates.*\[(.*)\]/gs;
-            var cartesian = cartesianRe.exec(data)[1];
+            // Cartesian XYZ: take the first [X,Y,Z] triplet after the 'Cartesian coordinates' section
+            const cartesianRe = /Cartesian coordinates[\s\S]*?\[([^\]]+)\]/i;
+            const cartMatch = cartesianRe.exec(data);
+            if(!cartMatch){
+                alert("Cartesian [X,Y,Z] block not found in NRCAN Summary.");
+                return;
+            }
+            var cartesian = cartMatch[1].trim()
+                .replace(/,/g," ")
+                .replace(/\s+/g," ")
+                .trim();
 
-            document.getElementById('inputvalues').value ='centipedeBase '+cartesian.replace(","," ").replace(","," ");
+            document.getElementById('inputvalues').value ='centipedeBase '+cartesian;
         }
 
         function convertXYZtoLatLongElev() {
