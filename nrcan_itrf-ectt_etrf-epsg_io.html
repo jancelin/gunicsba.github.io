@@ -56,12 +56,10 @@
         }
     </style>
 </head>
-<body> 
-    <body onload="clearFields()"> <!-- Appel de la fonction clearFields() lors du chargement de la page -->
+<body onload="clearFields()"> <!-- Appel de la fonction clearFields() lors du chargement de la page -->
     <div id="problem"></div>
     <div class="container">
         <h1>NRCAN ITRF20 to EUROPE ETRF2000 Converter</h1>
-        <button onclick="displayPopup()">Show Instructions</button>
         <p>Open the <strong><a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp.php" target="_blank">NRCAN</a></strong> site and do a Static ITRF calculation to get the ITRF position.</p>
         <hr>
         <p>In the NRCAN mail, please click on Summary and copy the whole thing here:</p>
@@ -88,8 +86,9 @@
 	GRSxx ellipsoid used for (x,y,z) to (lat,lon,h) transformation"></textarea>
         <br>
         <button onclick="szamol()">1. Extract data!</button>
-        <form name="ecttform" method="post" action="https://www.epncb.oma.be/_productsservices/coord_trans/index.php">
+        <form name="ecttform" method="post" action="https://epncb.oma.be/_productsservices/coord_trans/">
             <input type="hidden" id="epochtype" name="epochtype" value='date'><br>
+            <input type="hidden" id="date" name="date" value="1"><br>
             <input type="hidden" id="from_frame_in" name="from_frame_in" value='ITRF2020'>
             <input type="hidden" id="from_epoch_date" name="from_epoch_date" value=''>
             <input type="hidden" id="to_frame_out" name="to_frame_out" value='ETRF2000'><br>
@@ -102,7 +101,7 @@
         </form>
         <hr>
         <h3>Paste here the ECTT result</h3>
-        <textarea id="xyzCoords" rows="5" placeholder="#_Station Frame  Epoch        X[m]          Y[m]          Z[m]    VX[m/yr] VY[m/yr] VZ[m/yr] &#10; &#10; &#10; centipedeBase ETRF2000 xxxx.xx  xxxxxxx.xxxx   -xxxxx.xxxx  xxxxxxx.xxxx      
+        <textarea id="xyzCoords" rows="5" placeholder="#_Station Frame  Epoch        X[m]          Y[m]          Z[m]    VX[m/yr] VY[m/yr] VZ[m/yr] &#10; &#10; &#10; centipedeBase ETRF2000 xxxx.xx  xxxxxxx.xxxx   -xxxxx.xxxx  xxxxxxx.xxxx      
 "></textarea><br>
         <button onclick="convertXYZtoLatLongElev()">3. Convert XYZ to Lat Long Elev</button>
         <hr>
@@ -126,40 +125,32 @@
         }
         function szamol(){
             document.getElementById('problem').innerHTML ="";
-            var data = (document.getElementById('NRCAN').value || "");
-
-            // Basic sanity checks (NRCAN Summary content)
-            if(!/estimated coordinates/i.test(data) || !/Cartesian coordinates/i.test(data)){
-                alert("No valid NRCAN Summary detected. Please paste the Summary from NRCAN Static ITRF.");
+            var data = document.getElementById('NRCAN').value;
+            //is it ITRF20?
+            console.log(data.length);
+            console.log(data.replaceAll("ITRF20","").length);
+            if(data.length == data.replaceAll("ITRF20","").length){
+                console.log("so we didn't replace anything..");
+                alert(" No summary of NRCAN, please paste summary from NRCAN Static ITRF ");
                 return;
             }
-
-            // Epoch: supports both old and new NRCAN formats:
-            //  - "ITRF20 2025-05-20 ..."
-            //  - "ITRF2020/IGc20 2026-02-02 ..."
-            const epochRe = /ITRF(?:20|2020)(?:\/[A-Za-z0-9]+)?\s+([0-9-]{10})\b/i;
-            const epochMatch = data.match(epochRe);
-            if(!epochMatch){
-                alert("Epoch not found in NRCAN Summary. Expected something like 'ITRF20 YYYY-MM-DD' or 'ITRF2020/XXXX YYYY-MM-DD'.");
+            //Epoch?
+            // Supports both old format "ITRF20 2024-01-01" and new format "ITRF2020/IGc20 2026-01-29"
+            const epochRe =/ITRF20\S* ([0-9-]{10})/g;
+            var epochMatch = epochRe.exec(data);
+            if (!epochMatch) {
+                alert("Could not extract epoch date from NRCAN summary.");
                 return;
             }
             var epoch = epochMatch[1];
             document.getElementById('from_epoch_date').value=epoch;
             document.getElementById('to_epoch_date').value=epoch;
 
-            // Cartesian XYZ: take the first [X,Y,Z] triplet after the 'Cartesian coordinates' section
-            const cartesianRe = /Cartesian coordinates[\s\S]*?\[([^\]]+)\]/i;
-            const cartMatch = cartesianRe.exec(data);
-            if(!cartMatch){
-                alert("Cartesian [X,Y,Z] block not found in NRCAN Summary.");
-                return;
-            }
-            var cartesian = cartMatch[1].trim()
-                .replace(/,/g," ")
-                .replace(/\s+/g," ")
-                .trim();
+            //Cartesian
+            const cartesianRe =/Cartesian coordinates.*\[(.*)\]/gs;
+            var cartesian = cartesianRe.exec(data)[1];
 
-            document.getElementById('inputvalues').value ='centipedeBase '+cartesian;
+            document.getElementById('inputvalues').value ='centipedeBase '+cartesian.replace(","," ").replace(","," ");
         }
 
         function convertXYZtoLatLongElev() {
@@ -259,101 +250,6 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-    function displayPopup() {
-        // Création d'un élément div pour contenir la notice
-        var popup = document.createElement('div');
-        popup.id = 'popup';
-        popup.style.position = 'fixed';
-        popup.style.top = '50%';
-        popup.style.left = '50%';
-        popup.style.transform = 'translate(-50%, -50%)';
-        popup.style.backgroundColor = '#fff';
-        popup.style.padding = '20px';
-        popup.style.border = '2px solid #333';
-        popup.style.borderRadius = '10px';
-        popup.style.zIndex = '9999';
-
-        // Ajout du contenu de la notice en anglais et en français
-        popup.innerHTML = `
-            <h2>Notice / Avis :</h2>
-            
-<!-- Texte en anglais -->
-<h3>English:</h3>
-<p>Welcome to the NRCAN ITRF20 to EUROPE ETRF2000 Converter!</p>
-<p>This tool is designed to help you convert coordinates from the North American Datum (NRCAN ITRF20) to the European Terrestrial Reference Frame 2000 (EUROPE ETRF2000).</p>
-<p><strong>Instructions:</strong></p>
-<ol>
-    <li>Open the NRCAN website and perform a Static ITRF calculation. Activate ITRF and upload your xxx-xx-xx-xxxx-nrcan.obs file. Click "Submit to PPP".</li>
-    <li>In the email received from NRCAN, click on Summary and copy the entire content into the first textarea above.</li>
-    <li>Click the "1. Extract data!" button to extract relevant information from the summary.</li>
-    <li>Then click on the second button: "2. Click to display the ECTT result (ITRF20>ETRF2000) in a new page, copy the result".</li>
-    <li>A new page will open, copy all the data from the "RESULTS" area.</li>
-    <li>Paste this ECTT result into the corresponding textarea.</li>
-    <li>Click the "Convert XYZ to Lat Long Elev" button to initiate the final conversion process.</li>
-    <li>The final converted coordinates will appear in the last textarea:
-        <ul>
-            <li>You can export the form data as a .txt file using the "Export Form Data .txt" button to provide it during your GNSS base declaration on the CentipedeRTK network.</li>
-            <li>You can copy the coordinates to paste them into Settings > Main Service > Base coordinates.</li>
-        </ul>
-    </li>
-</ol>
-
-<!-- Texte en hongrois -->
-<h3>Hungarian:</h3>
-<p>Üdvözöljük a NRCAN ITRF20 és az EUROPE ETRF2000 konverterben!</p>
-<p>Ez az eszköz segít a koordináták átváltásában az Észak-amerikai Datumról (NRCAN ITRF20) az Európai Földi Hivatkozási Rendszer 2000-re (EUROPE ETRF2000).</p>
-<p><strong>Utasítások:</strong></p>
-<ol>
-    <li>Nyissa meg a NRCAN webhelyet, és végezzen statikus ITRF számítást. Aktiválja az ITRF-et, és töltse fel a xxx-xx-xx-xxxx-nrcan.obs fájlját. Kattintson a "Submit to PPP" gombra.</li>
-    <li>A NRCAN-tól kapott e-mailben kattintson a "Summary"-ra, és másolja be az összes tartalmat a fenti első szövegdobozba.</li>
-    <li>Kattintson az "1. Extract data!" gombra a releváns információk kinyeréséhez a összegzésből.</li>
-    <li>Ezután kattintson a második gombra: "2. Click to display the ECTT result (ITRF20>ETRF2000) in a new page, copy the result".</li>
-    <li>Egy új oldal jelenik meg, másolja ki az adatokat az "RESULTS" területről.</li>
-    <li>Illessze be az ECTT eredményét a megfelelő szövegdobozba.</li>
-    <li>Kattintson a "Convert XYZ to Lat Long Elev" gombra az utolsó átalakítási folyamat elindításához.</li>
-    <li>A végső átalakított koordináták megjelennek az utolsó szövegdobozban:
-        <ul>
-            <li>Exportálhatja a formanyomtatvány adatait .txt fájl formájában a "Export Form Data .txt" gomb segítségével, hogy azt a CentipedeRTK hálózaton történő GNSS bázisnyilatkozatánál adjon meg.</li>
-            <li>Másolhatja a koordinátákat a beállítások > Főszolgáltatás > Báziskoordinátákba való beillesztéshez.</li>
-        </ul>
-    </li>
-</ol>
-
-<!-- Texte en français -->
-<h3>Français :</h3>
-<p>Bienvenue sur le Convertisseur NRCAN ITRF20 vers EUROPE ETRF2000 !</p>
-<p>Cet outil est conçu pour vous aider à convertir les coordonnées du Système de Référence international ITRF20 produit par NRCAN (SCRS-PPP) en Référentiel Terrestre Européen 2000 (EUROPE ETRF2000).</p>
-<p><strong>Instructions :</strong></p>
-<ol>
-    <li>Ouvrez le site web de NRCAN, ouvrez/activez votre session. Effectuez un calcul statique. Activez ITRF et déposez votre fichier xxx-xx-xx-xxxx-nrcan.obs. Cliquez sur "Submit to PPP".</li>
-    <li>Quelques instants après, dans l'email reçu de NRCAN, cliquez sur Résumé et copiez l'intégralité du contenu dans la première zone de texte ci-dessus.</li>
-    <li>Cliquez sur le bouton "1. Extract data!" afin d'extraire les informations pertinentes du résumé.</li>
-    <li>Ensuite, cliquez sur le deuxième bouton : "2. Click to display the ECTT result (ITRF20>ETRF2000) in a new page, copy the result".</li>
-    <li>Une nouvelle page s'ouvrira, copiez toutes les données de la zone "RESULTS".</li>
-    <li>Collez ce résultat ECTT dans la zone de texte correspondante.</li>
-    <li>Cliquez sur le bouton "Convertir XYZ en Lat Long Elev" pour lancer le dernier processus de conversion.</li>
-    <li>Les coordonnées converties finales apparaîtront dans la dernière zone de texte :
-        <ul>
-            <li>Vous pourrez exporter les données du formulaire sous forme de fichier .txt en utilisant le bouton "Export Form Data .txt" afin de le fournir au moment de la déclaration de votre base GNSS sur le réseau CentipedeRTK.</li>
-            <li>Vous pourrez copier les coordonnées pour les coller dans Settings > Main Service > Base coordinates.</li>
-        </ul>
-    </li>
-            </ol>
-            
-            <button onclick="closePopup()">Close / Fermer</button>
-        `;
-
-        // Ajout du popup à la page
-        document.body.appendChild(popup);
-    }
-
-    function closePopup() {
-        var popup = document.getElementById('popup');
-        if (popup) {
-            document.body.removeChild(popup);
-        }
-    }
-</script>
     </script> 
 </body>
 </html>
